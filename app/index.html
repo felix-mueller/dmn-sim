@@ -270,19 +270,20 @@ table tr td:first-child {
 
           var errorcontainer = document.createElement('div');
           errorcontainer.setAttribute('class', 'error');
-          
+
           /* JAKOBS TEIL */
           errorcontainer.innerHTML += '<h1>This did not work - Please review message below</h1>';
-          errorcontainer.innerHTML += '<div style="width:300px; height:20px; background-color:lightgrey; pading:20px;">Click here to close window</div>';
+          errorcontainer.innerHTML += '<div id="i_am_a_very_unique_id" style="width:300px; height:20px; background-color:lightgrey; pading:20px;">Click here to close window</div>';
 
 
           /* JAKOBS TEIL ENDE */
           errorcontainer.innerHTML += this.responseText;
-          errorcontainer.addEventListener('click', function() {
-            errorcontainer.parentNode.removeChild(errorcontainer);
-          });
 
           document.body.appendChild(errorcontainer);
+
+          document.getElementById('i_am_a_very_unique_id').addEventListener('click', function() {
+            errorcontainer.parentNode.removeChild(errorcontainer);
+          });
 
           return;
         } else {
