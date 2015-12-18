@@ -281,6 +281,9 @@ table tr td:first-child {
 
           document.body.appendChild(errorcontainer);
 
+          var styleBullshit = document.querySelector('.error style');
+          styleBullshit.parentNode.removeChild(styleBullshit);
+
           document.getElementById('i_am_a_very_unique_id').addEventListener('click', function() {
             errorcontainer.parentNode.removeChild(errorcontainer);
           });
