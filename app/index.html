@@ -182,7 +182,18 @@ table tr td:first-child {
         })
       };
 
-      console.log(JSON.stringify(payload));
+
+      http://ec2-52-18-80-219.eu-west-1.compute.amazonaws.com:8080/dmn-evaluator/evaluateDecision
+
+      var reqListener = function() {
+        console.log(this.responseText);
+      }
+
+      var oReq = new XMLHttpRequest();
+      oReq.addEventListener("load", reqListener);
+      oReq.open("POST", "http://ec2-52-18-80-219.eu-west-1.compute.amazonaws.com:8080/dmn-evaluator/evaluateDecision", true);
+      oReq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      oReq.send(JSON.stringify(payload));
     });
   });
 
