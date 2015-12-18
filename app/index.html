@@ -122,6 +122,7 @@ table tr td:first-child {
 
 
   <div id="table-holder" style="position:absolute;">
+    <button id="downloadButton">download</button>
   </div>
 </div>
 <script>
@@ -176,6 +177,7 @@ table tr td:first-child {
 
         inputsContainer.appendChild(input.row);
       }
+
       input.label.innerText = input.obj.businessObject.label + ':';
     }
   };
@@ -260,14 +262,14 @@ table tr td:first-child {
 
       var oReq = new XMLHttpRequest();
       oReq.addEventListener("load", reqListener);
-      oReq.open("POST", "http://ec2-52-18-80-219.eu-west-1.compute.amazonaws.com:8080/dmn-evaluator/evaluateDecision", true);
+      oReq.open("POST", "https://camunda.org/dmn/simulator/proxy.php", true);
       oReq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       oReq.send(JSON.stringify(payload));
     });
   });
 
   viewer.importXML(xml, function(err) {
-
+document.getElementById('downloadButton').parentNode.appendChild(document.getElementById('downloadButton'));
     if (err) {
       console.log('error rendering', err);
     } else {
@@ -275,7 +277,18 @@ table tr td:first-child {
     }
   });
 
+document.getElementById('downloadButton').addEventListener('click', function(evt) {
+  viewer.saveXML({ format: true }, function(err, data) {
+    var encodedData = encodeURIComponent(data);
+    var link = document.createElement('a');
+    if (data) {
+      link.setAttribute('href', 'data:application/xml;charset=UTF-8,' + encodedData);
+      link.setAttribute('download', 'simulation.dmn');
+      link.click();
+    }
 
+  });
+});
 
 
   function handleFileSelect(e) {
@@ -302,7 +315,7 @@ table tr td:first-child {
       outputs = [];
 
       viewer.importXML(xml, function(err) {
-
+        document.getElementById('downloadButton').parentNode.appendChild(document.getElementById('downloadButton'));
         if (err) {
           console.log('error rendering', err);
         } else {
