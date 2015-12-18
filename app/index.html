@@ -199,6 +199,7 @@ table tr td:first-child {
         outputsContainer.appendChild(output.row);
       }
       output.label.innerText = output.obj.businessObject.label + ':';
+      output.html.value = output.value ||'';
     }
   };
 
