@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.camunda.bpm.dmn.engine.DmnDecision;
+import org.camunda.bpm.dmn.engine.DmnDecisionRuleResult;
 import org.camunda.bpm.dmn.engine.DmnDecisionTableResult;
 import org.camunda.bpm.dmn.engine.DmnEngine;
 import org.camunda.bpm.dmn.engine.DmnEngineConfiguration;
@@ -49,13 +50,21 @@ public class EvaluateDecisionService extends HttpServlet {
 		VariableMap variables = Variables.createVariables();
 	    int inputCounter = 1;
 		for (SpinJsonNode inputNode : inputs) {
+			System.out.println(inputNode.prop("type").stringValue());
 			if (inputNode.prop("type").stringValue().equals("string")) {
 				String myVariable = inputNode.prop("value").stringValue();
 				variables.put("input" + inputCounter, myVariable);
-			} else 	if (inputNode.prop("type").stringValue().equals("integer")) {
+			} else 	if (inputNode.prop("type").stringValue().equals("integer") || inputNode.prop("type").stringValue().equals("long") || inputNode.prop("type").stringValue().equals("double")) {
 				Number myVariable = inputNode.prop("value").numberValue();
 				variables.put("input" + inputCounter, myVariable);
+			} else 	if (inputNode.prop("type").stringValue().equals("boolean") ) {
+				// little workaround because boolean currently comes as string
+				boolean myVariable = false;
+				String myBoolTest = inputNode.prop("value").stringValue();
+				if (myBoolTest.equals("true")) myVariable = true;
+				variables.put("input" + inputCounter, myVariable);
 			}
+
 			inputCounter++;
 		}
 	
@@ -69,12 +78,17 @@ public class EvaluateDecisionService extends HttpServlet {
 		  
 		  // load decision table
 		  InputStream inputStream = new ByteArrayInputStream(requestNode.prop("xml").stringValue().getBytes(StandardCharsets.UTF_8));
-		  DmnDecision decision = dmnEngine.parseDecision("decision", inputStream);
-	      
-		  // run decision table
-		  DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variables);
+		  //DmnDecision decision = dmnEngine.parseDecision("decision", inputStream);
+		  List<DmnDecision> decisions = dmnEngine.parseDecisions(inputStream);
 		  
-		 
+		  // run decision table
+		  DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decisions.get(0), variables);
+		  
+		    List collectionList = new LinkedList();
+		    for (DmnDecisionRuleResult singleResult : result) {
+		    	SpinJsonNode resultNode = JSON(singleResult.getEntryMap());
+		    	collectionList.add(resultNode);	    	
+		    }		 
 
   		List rulesList = new LinkedList();
 	      // print event
@@ -95,6 +109,8 @@ public class EvaluateDecisionService extends HttpServlet {
 	      }		
 		resp.setHeader("Content-Type", "application/json;charset=UTF-8");
 		SpinJsonNode rootNode = JSON("{}");
+		
+		rootNode.prop("collection", collectionList);
 		rootNode.prop("rules", rulesList);
 		String json = rootNode.toString();
 		resp.getWriter().write(json);
