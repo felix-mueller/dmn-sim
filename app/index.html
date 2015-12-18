@@ -299,6 +299,16 @@ table tr td:first-child {
             outputs[j].value = rule.outputs[j];
           }
         }
+
+        // COLLECTION Outputs
+        //if(res.collection && res.collection.length > 1) {
+          for(var i = 0; i < Object.keys(res.collection[0]).length; i++) {
+            var collectedOutput = res.collection.map(function(el) {
+              return el['output' + (i+1)];
+            });
+            outputs[i].value = collectedOutput.join(', ');
+          }
+        //}
         updateOutputs();
       };
 
@@ -311,26 +321,26 @@ table tr td:first-child {
   });
 
   viewer.importXML(xml, function(err) {
-document.getElementById('downloadButton').parentNode.appendChild(document.getElementById('downloadButton'));
-    if (err) {
-      console.log('error rendering', err);
-    } else {
-      console.log('rendered');
-    }
-  });
+  document.getElementById('downloadButton').parentNode.appendChild(document.getElementById('downloadButton'));
+      if (err) {
+        console.log('error rendering', err);
+      } else {
+        console.log('rendered');
+      }
+    });
 
-document.getElementById('downloadButton').addEventListener('click', function(evt) {
-  viewer.saveXML({ format: true }, function(err, data) {
-    var encodedData = encodeURIComponent(data);
-    var link = document.createElement('a');
-    if (data) {
-      link.setAttribute('href', 'data:application/xml;charset=UTF-8,' + encodedData);
-      link.setAttribute('download', 'simulation.dmn');
-      link.click();
-    }
+  document.getElementById('downloadButton').addEventListener('click', function(evt) {
+    viewer.saveXML({ format: true }, function(err, data) {
+      var encodedData = encodeURIComponent(data);
+      var link = document.createElement('a');
+      if (data) {
+        link.setAttribute('href', 'data:application/xml;charset=UTF-8,' + encodedData);
+        link.setAttribute('download', 'simulation.dmn');
+        link.click();
+      }
 
+    });
   });
-});
 
 
   function handleFileSelect(e) {
