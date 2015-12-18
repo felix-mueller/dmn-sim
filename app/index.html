@@ -13,6 +13,17 @@
     padding: 10px;
   }
 
+  .error {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: blue;
+    color: white;
+    z-index: 100;
+  }
+
   input[readonly] {
     background-color: #DDD;
   }
@@ -75,7 +86,8 @@
 }
 
 #topContainer {
-  min-height: 200px: ;
+  min-height: 200px;
+  margin-bottom: 25px;
 }
 
 #inputs {
@@ -251,7 +263,17 @@ table tr td:first-child {
         var text = this.responseText;
         var idx = this.responseText.indexOf('{"');
         if(idx === -1) {
-          alert('Something went terribly wrong D: ' + this.responseText);
+
+          var errorcontainer = document.createElement('div');
+          errorcontainer.setAttribute('class', 'error');
+
+          errorcontainer.innerHTML = this.responseText;
+          errorcontainer.addEventListener('click', function() {
+            errorcontainer.parentNode.removeChild(errorcontainer);
+          });
+
+          document.body.appendChild(errorcontainer);
+
           return;
         } else {
           text = this.responseText.substr(idx);
