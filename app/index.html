@@ -105,25 +105,25 @@ table tr td:first-child {
 </style>
 </head>
 <body style="background: #EEE;">
-
-<div id="topContainer">
-  <div id="inputs">
-    <h1 id="inputsHeader">Inputs:</h1>
-    <table id="inputsContainer"></table>
+<div class="content" id="js-drop-zone">
+  <div id="topContainer">
+    <div id="inputs">
+      <h1 id="inputsHeader">Inputs:</h1>
+      <table id="inputsContainer"></table>
+    </div>
+    <div id="outputs">
+      <h1 id="outputsHeader">Outputs:</h1>
+      <table id="outputsContainer"></table>
+    </div>
   </div>
-  <div id="outputs">
-    <h1 id="outputsHeader">Outputs:</h1>
-    <table id="outputsContainer"></table>
+
+  <div style="text-align: center;"><button id="simulateButton" class="myButton">SIMULATE</button></div>
+
+
+
+  <div id="table-holder" style="position:absolute;">
   </div>
 </div>
-
-<div style="text-align: center;"><button id="simulateButton" class="myButton">SIMULATE</button></div>
-
-
-
-<div id="table-holder" style="position:absolute;">
-</div>
-
 <script>
 
  'use strict';
@@ -274,6 +274,57 @@ table tr td:first-child {
       console.log('rendered');
     }
   });
+
+
+
+
+  function handleFileSelect(e) {
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    var files = e.dataTransfer.files;
+
+    var file = files[0];
+
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+
+      var xml = e.target.result;
+
+      //callback(xml);
+      console.log(e);
+      document.getElementById('inputsContainer').innerHTML = '';
+      document.getElementById('outputsContainer').innerHTML = '';
+
+      inputs = [];
+      outputs = [];
+
+      viewer.importXML(xml, function(err) {
+
+        if (err) {
+          console.log('error rendering', err);
+        } else {
+          console.log('rendered');
+        }
+      });
+    };
+
+    reader.readAsText(file);
+  }
+
+  function handleDragOver(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    e.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+  }
+
+  document.getElementById('js-drop-zone').addEventListener('dragover', handleDragOver, false);
+  document.getElementById('js-drop-zone').addEventListener('drop', handleFileSelect, false);
+
+
 </script>
 </body>
 </html>
