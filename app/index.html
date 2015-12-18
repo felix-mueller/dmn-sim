@@ -247,7 +247,17 @@ table tr td:first-child {
       };
 
       var reqListener = function() {
-        var res = JSON.parse(this.responseText);
+
+        var text = this.responseText;
+        var idx = this.responseText.indexOf('{"');
+        if(idx === -1) {
+          alert('Something went terribly wrong D: ' + this.responseText);
+          return;
+        } else {
+          text = this.responseText.substr(idx);
+        }
+
+        var res = JSON.parse(text);
         console.log(res);
         for(var i = 0; i < res.rules.length; i++) {
           var rule = res.rules[i];
