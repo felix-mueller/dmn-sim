@@ -81,6 +81,10 @@ table tr td:first-child {
   text-align: right;
 }
 
+.fired td {
+  background-color: rgb(0, 213, 255) !important;
+}
+
 </style>
 </head>
 <body style="    background: #EEE;">
@@ -186,7 +190,13 @@ table tr td:first-child {
       http://ec2-52-18-80-219.eu-west-1.compute.amazonaws.com:8080/dmn-evaluator/evaluateDecision
 
       var reqListener = function() {
-        console.log(this.responseText);
+        var res = JSON.parse(this.responseText);
+        console.log(res);
+        for(var i = 0; i < res.rules.length; i++) {
+          var rule = res.rules[i];
+          var elem = document.querySelector('[data-element-id="'+rule.ruleId+'"]');
+          elem.setAttribute('class', 'fired');
+        }
       }
 
       var oReq = new XMLHttpRequest();
