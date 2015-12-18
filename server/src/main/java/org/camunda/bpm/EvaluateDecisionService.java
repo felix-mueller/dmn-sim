@@ -2,10 +2,13 @@ package org.camunda.bpm;
 
 import static org.camunda.spin.Spin.JSON;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,6 +25,7 @@ import org.camunda.bpm.dmn.engine.delegate.DmnEvaluatedDecisionRule;
 import org.camunda.bpm.dmn.engine.delegate.DmnEvaluatedOutput;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
+import org.camunda.spin.SpinList;
 import org.camunda.spin.json.SpinJsonNode;
 
 @WebServlet(urlPatterns={"/evaluateDecision"})
@@ -35,17 +39,26 @@ public class EvaluateDecisionService extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
 			throws ServletException, IOException {
 
-		String decisionTable = req.getParameter("decisionTable");
-		System.out.println(decisionTable);
-		//SpinJsonNode requestNode = JSON(requestJson);
+		BufferedReader reader = req.getReader();
 		
-		//String test = requestNode.prop("input").stringValue();		
-	
-		  // TODO: Get DecisionTable and Input Data from JSON
-		  
-		  String season = "Summer";
-		  int guestCount = 800;
+		SpinJsonNode requestNode = JSON(reader);
 
+		SpinList<SpinJsonNode> inputs = requestNode.prop("inputs").elements();
+		
+	    // prepare input data
+		VariableMap variables = Variables.createVariables();
+	    int inputCounter = 1;
+		for (SpinJsonNode inputNode : inputs) {
+			if (inputNode.prop("type").stringValue().equals("string")) {
+				String myVariable = inputNode.prop("value").stringValue();
+				variables.put("input" + inputCounter, myVariable);
+			} else 	if (inputNode.prop("type").stringValue().equals("integer")) {
+				Number myVariable = inputNode.prop("value").numberValue();
+				variables.put("input" + inputCounter, myVariable);
+			}
+			inputCounter++;
+		}
+	
 		  // create evaluation listner to record matched rules
 		  DishDecisionTableEvaluationListener evaluationListener = new DishDecisionTableEvaluationListener();
 
@@ -55,50 +68,36 @@ public class EvaluateDecisionService extends HttpServlet {
 		  DmnEngine dmnEngine = engineConfiguration.buildEngine();
 		  
 		  // load decision table
-		  //InputStream inputStream = EvaluateDecisionService.class.getResourceAsStream("/dish.dmn");
-		  InputStream inputStream = new ByteArrayInputStream(decisionTable.getBytes(StandardCharsets.UTF_8));
-
+		  InputStream inputStream = new ByteArrayInputStream(requestNode.prop("xml").stringValue().getBytes(StandardCharsets.UTF_8));
 		  DmnDecision decision = dmnEngine.parseDecision("decision", inputStream);
-	      
-	      // prepare input data
-		  VariableMap variables = Variables
-	        .putValue("season", season)
-	        .putValue("guestCount", guestCount);
 	      
 		  // run decision table
 		  DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variables);
+		  
+		 
 
-		  // Get result
-		  String desiredDish = result.getSingleResult().getSingleEntry();
-		  
-		  // println the result
-		  System.out.println(desiredDish);
-		  
+  		List rulesList = new LinkedList();
 	      // print event
 	      DmnDecisionTableEvaluationEvent evaluationEvent = evaluationListener.getLastEvent();
-	      System.out.println("The following Rules matched:");
+	      //System.out.println("The following Rules matched:");
 	      for (DmnEvaluatedDecisionRule matchedRule : evaluationEvent.getMatchingRules()) {
-	        System.out.println("\t" + matchedRule.getId() + ":");
+	    	  SpinJsonNode rulesNode = JSON("{}");
+	    	  rulesNode.prop("ruleId", matchedRule.getId());
+	    	  List outputList = new LinkedList();
+	    	  //System.out.println("\t" + matchedRule.getId() + ":");
 	        for (DmnEvaluatedOutput output : matchedRule.getOutputEntries().values()) {
-	          System.out.println("\t\t" + output);
+		    	 outputList.add(output.getValue().getValue());
+	        	//System.out.println("\t\t" + output);
 	        }
+	          rulesNode.prop("outputs", outputList);
+	        rulesList.add(rulesNode);
+	      
 	      }		
-		
-		
-		String response = "Test_";
-		
 		resp.setHeader("Content-Type", "application/json;charset=UTF-8");
-		
-		SpinJsonNode jsonNode = JSON("{}");
-		jsonNode.prop("result", response);
-		
-		
-		String json = jsonNode.toString();
+		SpinJsonNode rootNode = JSON("{}");
+		rootNode.prop("rules", rulesList);
+		String json = rootNode.toString();
 		resp.getWriter().write(json);
-		
 	};
-
-
-	
 
 }
