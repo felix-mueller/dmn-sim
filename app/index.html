@@ -173,7 +173,17 @@ table tr td:first-child {
     window.setTimeout(updateInputs, 310);
   });
 
+  var resetTable = function() {
+    var rules = document.querySelectorAll('.fired');
+    for(var i = 0; i < rules.length; i++) {
+      rules[i].setAttribute('class', '');
+    }
+  };
+
   document.getElementById('simulateButton').addEventListener('click', function(evt) {
+
+    resetTable();
+
     viewer.saveXML({ format: false }, function(err, xml) {
       var payload = {
         xml: xml,
