@@ -220,6 +220,12 @@ table tr td:first-child {
     for(var i = 0; i < rules.length; i++) {
       rules[i].setAttribute('class', '');
     }
+    var rules = document.querySelectorAll('input[readonly]');
+    for(var i = 0; i < rules.length; i++) {
+      rules[i].value = '';
+    }
+
+
   };
 
   document.getElementById('simulateButton').addEventListener('click', function(evt) {
