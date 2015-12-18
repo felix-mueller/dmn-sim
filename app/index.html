@@ -2,26 +2,109 @@
 <head>
 <link href="lib/css/dmn-js.css" rel="stylesheet">
 <script src="lib/dmn-modeler.js"></script>
-</head>
-<body>
 
-<div>
-  <div>Inputs:</div>
-  <div id="inputsContainer"></div>
+<style>
+  input {
+    display: block;
+    margin: 3px;
+    height: 28px;
+    width: 100%;
+    border: 1px dashed blue;
+    padding: 10px;
+  }
+
+  .mappings {
+    display: none !important;
+  }
+
+  tfoot {
+    background-color: #EEEEEE !important;
+  }
+
+  #topContainer {
+    min-height: 200px;
+    width: 45%;
+  }
+
+  .myButton {
+  -moz-box-shadow: 0px 17px 16px -7px #276873;
+  -webkit-box-shadow: 0px 17px 16px -7px #276873;
+  box-shadow: 0px 17px 16px -7px #276873;
+  background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #599bb3), color-stop(1, #408c99));
+  background:-moz-linear-gradient(top, #599bb3 5%, #408c99 100%);
+  background:-webkit-linear-gradient(top, #599bb3 5%, #408c99 100%);
+  background:-o-linear-gradient(top, #599bb3 5%, #408c99 100%);
+  background:-ms-linear-gradient(top, #599bb3 5%, #408c99 100%);
+  background:linear-gradient(to bottom, #599bb3 5%, #408c99 100%);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#599bb3', endColorstr='#408c99',GradientType=0);
+  background-color:#599bb3;
+  display:inline-block;
+  cursor:pointer;
+  color:#ffffff;
+  font-family:Georgia;
+  font-size:28px;
+  font-weight:bold;
+  padding:17px 49px;
+  text-decoration:none;
+  text-shadow:1px 2px 0px #3d768a;
+}
+.myButton:hover {
+  background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #408c99), color-stop(1, #599bb3));
+  background:-moz-linear-gradient(top, #408c99 5%, #599bb3 100%);
+  background:-webkit-linear-gradient(top, #408c99 5%, #599bb3 100%);
+  background:-o-linear-gradient(top, #408c99 5%, #599bb3 100%);
+  background:-ms-linear-gradient(top, #408c99 5%, #599bb3 100%);
+  background:linear-gradient(to bottom, #408c99 5%, #599bb3 100%);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#408c99', endColorstr='#599bb3',GradientType=0);
+  background-color:#408c99;
+}
+.myButton:active {
+  position:relative;
+  top:1px;
+  margin: auto;
+}
+
+#inputsHeader {
+
+}
+
+#table-holder {
+  margin: 10px;
+}
+
+table {
+  width: 100%;
+}
+
+table tr td:first-child {
+  width: 20%;
+  text-align: right;
+}
+
+</style>
+</head>
+<body style="    background: #EEE;">
+
+<div id="topContainer">
+  <h1 id="inputsHeader">Inputs:</h1>
+  <table id="inputsContainer"></table>
 </div>
 
-<button id="simulateButton">SIMULATE</button>
+<div style="text-align: center;"><button id="simulateButton" class="myButton">SIMULATE</button></div>
 
+
+
+<div id="table-holder" style="position:absolute;">
+</div>
 
 <script>
 
  'use strict';
-
   // require is part of bundle file
   var DmnViewer = window.DmnJS;
 
-  var xml = '<?xml version="1.0" encoding="UTF-8"?> <definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn11.xsd" id="definitions" name="definitions" namespace="http://camunda.org/schema/1.0/dmn">   <decision id="decision" name="Dish">     <decisionTable id="decisionTable">       <input id="input1" label="Season">         <inputExpression id="inputExpression1" typeRef="string">        <text>season</text> </inputExpression>       </input>       <input id="InputClause_0hmkumv" label="How many guests">         <inputExpression id="LiteralExpression_0m7s53h" typeRef="integer">        <text>guestCount</text> </inputExpression>       </input>       <output id="output1" label="Dish" name="desiredDish" typeRef="string" />       <rule id="row-950612891-1">         <inputEntry id="UnaryTests_0c1o054">        <text><![CDATA["Fall"]]></text> </inputEntry>         <inputEntry id="UnaryTests_1lod0sz">        <text><![CDATA[<= 8]]></text> </inputEntry>         <outputEntry id="LiteralExpression_065u3ym">        <text><![CDATA["Spareribs"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-2">         <inputEntry id="UnaryTests_0u1z4ho">        <text><![CDATA["Winter"]]></text> </inputEntry>         <inputEntry id="UnaryTests_1euytqf">        <text><![CDATA[<= 8]]></text> </inputEntry>         <outputEntry id="LiteralExpression_198frve">        <text><![CDATA["Roastbeef"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-3">         <inputEntry id="UnaryTests_1vn9t5c">        <text><![CDATA["Spring"]]></text> </inputEntry>         <inputEntry id="UnaryTests_1bbbmvu">        <text><![CDATA[<= 4]]></text> </inputEntry>         <outputEntry id="LiteralExpression_1bewepn">        <text><![CDATA["Dry Aged Gourmet Steak"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-4">         <description>Save money</description>         <inputEntry id="UnaryTests_0ogofox">        <text><![CDATA["Spring"]]></text> </inputEntry>         <inputEntry id="UnaryTests_0c60gjz">        <text>[5..8]</text> </inputEntry>         <outputEntry id="LiteralExpression_1lahvj7">        <text><![CDATA["Steak"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-5">         <description>Less effort</description>         <inputEntry id="UnaryTests_1774yme">        <text><![CDATA["Fall", "Winter", "Spring"]]></text> </inputEntry>         <inputEntry id="UnaryTests_01rn17i">        <text><![CDATA[> 8]]></text> </inputEntry>         <outputEntry id="LiteralExpression_0jpd7hr">        <text><![CDATA["Stew"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-6">         <description>Hey, why not!?</description>         <inputEntry id="UnaryTests_0ifdx8k">        <text><![CDATA["Summer"]]></text> </inputEntry>         <inputEntry id="UnaryTests_0c8ym7l">        <text></text> </inputEntry>         <outputEntry id="LiteralExpression_08d4mb6">        <text><![CDATA["Light Salad and a nice Pups"]]></text> </outputEntry>       </rule>     </decisionTable>   </decision> </definitions>'; // my DMN xml
-  var viewer = new DmnViewer({ container: 'body' });
+  var xml = '<?xml version="1.0" encoding="UTF-8"?> <definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn11.xsd" id="definitions" name="definitions" namespace="http://camunda.org/schema/1.0/dmn">   <decision id="decision" name="Dish">     <decisionTable id="decisionTable">       <input id="input1" label="Season">         <inputExpression id="inputExpression1" typeRef="string">        <text>input1</text> </inputExpression>       </input>       <input id="InputClause_0hmkumv" label="How many guests">         <inputExpression id="LiteralExpression_0m7s53h" typeRef="integer">        <text>input2</text> </inputExpression>       </input>       <output id="output1" label="Dish" name="output1" typeRef="string" />       <rule id="row-950612891-1">         <inputEntry id="UnaryTests_0c1o054">        <text><![CDATA["Fall"]]></text> </inputEntry>         <inputEntry id="UnaryTests_1lod0sz">        <text><![CDATA[<= 8]]></text> </inputEntry>         <outputEntry id="LiteralExpression_065u3ym">        <text><![CDATA["Spareribs"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-2">         <inputEntry id="UnaryTests_0u1z4ho">        <text><![CDATA["Winter"]]></text> </inputEntry>         <inputEntry id="UnaryTests_1euytqf">        <text><![CDATA[<= 8]]></text> </inputEntry>         <outputEntry id="LiteralExpression_198frve">        <text><![CDATA["Roastbeef"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-3">         <inputEntry id="UnaryTests_1vn9t5c">        <text><![CDATA["Spring"]]></text> </inputEntry>         <inputEntry id="UnaryTests_1bbbmvu">        <text><![CDATA[<= 4]]></text> </inputEntry>         <outputEntry id="LiteralExpression_1bewepn">        <text><![CDATA["Dry Aged Gourmet Steak"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-4">         <description>Save money</description>         <inputEntry id="UnaryTests_0ogofox">        <text><![CDATA["Spring"]]></text> </inputEntry>         <inputEntry id="UnaryTests_0c60gjz">        <text>[5..8]</text> </inputEntry>         <outputEntry id="LiteralExpression_1lahvj7">        <text><![CDATA["Steak"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-5">         <description>Less effort</description>         <inputEntry id="UnaryTests_1774yme">        <text><![CDATA["Fall", "Winter", "Spring"]]></text> </inputEntry>         <inputEntry id="UnaryTests_01rn17i">        <text><![CDATA[> 8]]></text> </inputEntry>         <outputEntry id="LiteralExpression_0jpd7hr">        <text><![CDATA["Stew"]]></text> </outputEntry>       </rule>       <rule id="row-950612891-6">         <description>Hey, why not!?</description>         <inputEntry id="UnaryTests_0ifdx8k">        <text><![CDATA["Summer"]]></text> </inputEntry>         <inputEntry id="UnaryTests_0c8ym7l">        <text></text> </inputEntry>         <outputEntry id="LiteralExpression_08d4mb6">        <text><![CDATA["Light Salad and a nice Pups"]]></text> </outputEntry>       </rule>     </decisionTable>   </decision> </definitions>'; // my DMN xml
+  var viewer = new DmnViewer({ container: document.getElementById('table-holder') });
 
   console.log(JSON.stringify({
     xml: xml,
@@ -46,7 +129,7 @@
       console.log('I added another input', elem);
       inputs.push({
         obj: elem,
-        html: null
+        html: null,
       });
       updateInputs();
     }
@@ -58,8 +141,20 @@
       // create html representation if necessary
       if(!input.html) {
         input.html = document.createElement('input');
-        inputsContainer.appendChild(input.html);
+        input.label = document.createElement('span');
+        input.row = document.createElement('tr');
+
+        var cell1 = document.createElement('td');
+        cell1.appendChild(input.label);
+        input.row.appendChild(cell1);
+        var cell2 = document.createElement('td');
+        cell2.appendChild(input.html);
+        input.row.appendChild(cell2);
+
+        inputsContainer.appendChild(input.row);
       }
+      console.log(input.obj);
+      input.label.innerText = input.obj.businessObject.label + ':';
     }
   };
 
@@ -69,6 +164,10 @@
     }
     return value;
   };
+
+  document.getElementById('table-holder').addEventListener('input', function(evt) {
+    window.setTimeout(updateInputs, 310);
+  });
 
   document.getElementById('simulateButton').addEventListener('click', function(evt) {
     viewer.saveXML({ format: false }, function(err, xml) {
@@ -83,7 +182,7 @@
         })
       };
 
-      console.log(payload);
+      console.log(JSON.stringify(payload));
     });
   });
 
