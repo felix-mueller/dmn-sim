@@ -340,7 +340,9 @@ table tr td:first-child {
       if (data) {
         link.setAttribute('href', 'data:application/xml;charset=UTF-8,' + encodedData);
         link.setAttribute('download', 'simulation.dmn');
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
       }
 
     });
