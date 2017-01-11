@@ -13,19 +13,28 @@
 
 package org.camunda.bpm;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.camunda.bpm.dmn.engine.delegate.DmnDecisionTableEvaluationEvent;
 import org.camunda.bpm.dmn.engine.delegate.DmnDecisionTableEvaluationListener;
 
 public class DishDecisionTableEvaluationListener implements DmnDecisionTableEvaluationListener {
 
   protected DmnDecisionTableEvaluationEvent lastEvent;
+  protected List<DmnDecisionTableEvaluationEvent> lastEvents = new ArrayList<DmnDecisionTableEvaluationEvent>();
 
   public void notify(DmnDecisionTableEvaluationEvent dmnDecisionTableEvaluationEvent) {
     lastEvent = dmnDecisionTableEvaluationEvent;
+    lastEvents.add(dmnDecisionTableEvaluationEvent);
   }
 
   public DmnDecisionTableEvaluationEvent getLastEvent() {
     return lastEvent;
   }
+  
+  public List<DmnDecisionTableEvaluationEvent> getLastEvents() {
+	    return lastEvents;
+	  }
 
 }

@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.camunda.bpm.dmn.engine.DmnDecision;
+import org.camunda.bpm.dmn.engine.DmnDecisionResult;
 import org.camunda.bpm.dmn.engine.DmnDecisionRuleResult;
 import org.camunda.bpm.dmn.engine.DmnDecisionTableResult;
 import org.camunda.bpm.dmn.engine.DmnEngine;
@@ -50,25 +51,31 @@ public class EvaluateDecisionService extends HttpServlet {
 		
 			BufferedReader reader = req.getReader();
 			SpinJsonNode requestNode = JSON(reader);
+			String decisionTable = null;
+			if (requestNode.hasProp("decisionTable")) {
+				decisionTable = requestNode.prop("decisionTable").stringValue();
+			}
+			
 			SpinList<SpinJsonNode> inputs = requestNode.prop("inputs").elements();
 			
 		    // prepare input data
 			VariableMap variables = Variables.createVariables();
 		    int inputCounter = 1;
 			for (SpinJsonNode inputNode : inputs) {
-				
+				String varname = inputNode.prop("varname").stringValue();
 				if (inputNode.prop("type").stringValue().equals("string")) {
 					String myVariable = inputNode.prop("value").stringValue();
-					variables.put("input" + inputCounter, myVariable);
+				
+					variables.putValue(varname, myVariable);
 				} else 	if (inputNode.prop("type").stringValue().equals("integer") || inputNode.prop("type").stringValue().equals("long") || inputNode.prop("type").stringValue().equals("double")) {
 					Number myVariable = inputNode.prop("value").numberValue();
-					variables.put("input" + inputCounter, myVariable);
+					variables.putValue(varname, myVariable);
 				} else 	if (inputNode.prop("type").stringValue().equals("boolean") ) {
 					// little workaround because boolean currently comes as string
 					boolean myVariable = false;
 					String myBoolTest = inputNode.prop("value").stringValue();
 					if (myBoolTest.equals("true")) myVariable = true;
-					variables.put("input" + inputCounter, myVariable);
+					variables.putValue(varname, myVariable);
 				} else 	if (inputNode.prop("type").stringValue().equals("date") ) {
 					String myVariableString = inputNode.prop("value").stringValue();
 				    DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -78,7 +85,7 @@ public class EvaluateDecisionService extends HttpServlet {
 				    } catch (Exception e) {
 				    	throw new Exception (e.getMessage() + "<p>The correct format is yyyy-MM-dd HH:mm:ss </p>");
 				    }
-					variables.put("input" + inputCounter, myVariable);
+					variables.putValue(varname, myVariable);
 				} else {
 					throw new Exception ("Data Type <i>" + inputNode.prop("type").stringValue() + "</i> is not yet supported in Simulation.");
 				}
@@ -96,21 +103,26 @@ public class EvaluateDecisionService extends HttpServlet {
 			  
 			  // load decision table
 			  InputStream inputStream = new ByteArrayInputStream(requestNode.prop("xml").stringValue().getBytes(StandardCharsets.UTF_8));
+			  System.out.println(requestNode.prop("xml").stringValue());
 			  //DmnDecision decision = dmnEngine.parseDecision("decision", inputStream);
-			  List<DmnDecision> decisions = dmnEngine.parseDecisions(inputStream);
-			  
+			  DmnDecision decision;
+			  if (decisionTable != null) {
+				  decision = dmnEngine.parseDecision(decisionTable,inputStream);
+			  } else {
+				  decision = dmnEngine.parseDecisions(inputStream).get(0);
+			  }
 			  // run decision table
-			  DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decisions.get(0), variables);
+			  DmnDecisionResult result = dmnEngine.evaluateDecision(decision, variables);
 			  
 			    List collectionList = new LinkedList();
-			    for (DmnDecisionRuleResult singleResult : result) {
-			    	SpinJsonNode resultNode = JSON(singleResult.getEntryMap());
-			    	collectionList.add(resultNode);	    	
-			    }		 
+			    SpinJsonNode resultNode = JSON(result.collectEntries(decisionTable));
+			 	 
 	
 	  		List rulesList = new LinkedList();
 		      // print event
-		      DmnDecisionTableEvaluationEvent evaluationEvent = evaluationListener.getLastEvent();
+	  		 List<DmnDecisionTableEvaluationEvent> evaluationEvents = evaluationListener.getLastEvents();
+		      System.out.println("The following Rules matched:");
+		      for (DmnDecisionTableEvaluationEvent evaluationEvent: evaluationEvents) {
 		      //System.out.println("The following Rules matched:");
 		      for (DmnEvaluatedDecisionRule matchedRule : evaluationEvent.getMatchingRules()) {
 		    	  SpinJsonNode rulesNode = JSON("{}");
@@ -118,18 +130,22 @@ public class EvaluateDecisionService extends HttpServlet {
 		    	  List outputList = new LinkedList();
 		    	  //System.out.println("\t" + matchedRule.getId() + ":");
 		        for (DmnEvaluatedOutput output : matchedRule.getOutputEntries().values()) {
-			    	 outputList.add(output.getValue().getValue());
+		        	SpinJsonNode outputProp = JSON("{}");
+		        	outputProp.prop(output.getId(), output.getValue().getValue().toString());
+			    	outputList.add(outputProp);
 		        	//System.out.println("\t\t" + output);
 		        }
 		          rulesNode.prop("outputs", outputList);
 		        rulesList.add(rulesNode);
 		      
-		      }		
+		      }	
+		      }
 				rootNode.prop("collection", collectionList);
 				rootNode.prop("rules", rulesList);
 		} catch (Exception e) {
 			rootNode.prop("error", e.getMessage());
 		}
+		
 		
 		resp.setHeader("Content-Type", "application/json;charset=UTF-8");
 		

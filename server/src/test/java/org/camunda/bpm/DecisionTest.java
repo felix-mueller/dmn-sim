@@ -1,8 +1,10 @@
 package org.camunda.bpm;
 
 import java.io.InputStream;
+import java.util.List;
 
 import org.camunda.bpm.dmn.engine.DmnDecision;
+import org.camunda.bpm.dmn.engine.DmnDecisionResult;
 import org.camunda.bpm.dmn.engine.DmnDecisionTableResult;
 import org.camunda.bpm.dmn.engine.DmnEngine;
 import org.camunda.bpm.dmn.engine.DmnEngineConfiguration;
@@ -25,9 +27,9 @@ public class DecisionTest {
 
 		  // TODO: Get DecisionTable and Input Data from JSON
 		  
-		  String season = "Summer";
-		  int guestCount = 800;
-
+		  String season = "Winter";
+		  int guestCount = 1;
+		  Boolean guestsWithChildren = true;
 		  // create evaluation listner to record matched rules
 		  DishDecisionTableEvaluationListener evaluationListener = new DishDecisionTableEvaluationListener();
 
@@ -37,33 +39,37 @@ public class DecisionTest {
 		  DmnEngine dmnEngine = engineConfiguration.buildEngine();
 		  
 		  // load decision table
-		  InputStream inputStream = DecisionTest.class.getResourceAsStream("/dish.dmn");
-	      DmnDecision decision = dmnEngine.parseDecision("decision", inputStream);
-	      
+		  InputStream inputStream = DecisionTest.class.getResourceAsStream("/beverages.dmn");
+	      DmnDecision decision = dmnEngine.parseDecision("beverages", inputStream);
+	    
 	      // prepare input data
 		  VariableMap variables = Variables
 	        .putValue("season", season)
-	        .putValue("guestCount", guestCount);
+	        .putValue("guestCount", guestCount).putValue("guestsWithChildren", guestsWithChildren);
 	      
 		  // run decision table
-		  DmnDecisionTableResult result = dmnEngine.evaluateDecisionTable(decision, variables);
-
+		  DmnDecisionResult result = dmnEngine.evaluateDecision(decision, variables);
+		    List<String> beverages = result.collectEntries("beverages");
+		    System.out.println("Beverages:\n\tI would recommend to serve: " + beverages);
 		  // Get result
-		  String desiredDish = result.getSingleResult().getSingleEntry();
+		    /*String desiredDish = result.getSingleResult().getSingleEntry();
 		  
 		  // println the result
 		  System.out.println(desiredDish);
-		  
+		  */
 	      // print event
-	      DmnDecisionTableEvaluationEvent evaluationEvent = evaluationListener.getLastEvent();
+		   
+	      DmnDecisionTableEvaluationEvent evaluationEventsingle = evaluationListener.getLastEvent();
+	      List<DmnDecisionTableEvaluationEvent> evaluationEvents = evaluationListener.getLastEvents();
 	      System.out.println("The following Rules matched:");
+	      for (DmnDecisionTableEvaluationEvent evaluationEvent: evaluationEvents) {
 	      for (DmnEvaluatedDecisionRule matchedRule : evaluationEvent.getMatchingRules()) {
 	        System.out.println("\t" + matchedRule.getId() + ":");
 	        for (DmnEvaluatedOutput output : matchedRule.getOutputEntries().values()) {
 	          System.out.println("\t\t" + output);
 	        }
 	      }
-		  
+	      }
 	      // TODO: Wrap result and matched rules in JSON and send back
 	  }
 
