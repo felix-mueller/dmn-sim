@@ -10,9 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -22,12 +23,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.camunda.bpm.dmn.engine.DmnDecision;
 import org.camunda.bpm.dmn.engine.DmnDecisionResult;
-import org.camunda.bpm.dmn.engine.DmnDecisionRuleResult;
-import org.camunda.bpm.dmn.engine.DmnDecisionTableResult;
+import org.camunda.bpm.dmn.engine.DmnDecisionResultEntries;
 import org.camunda.bpm.dmn.engine.DmnEngine;
 import org.camunda.bpm.dmn.engine.DmnEngineConfiguration;
 import org.camunda.bpm.dmn.engine.delegate.DmnDecisionTableEvaluationEvent;
 import org.camunda.bpm.dmn.engine.delegate.DmnEvaluatedDecisionRule;
+import org.camunda.bpm.dmn.engine.delegate.DmnEvaluatedInput;
 import org.camunda.bpm.dmn.engine.delegate.DmnEvaluatedOutput;
 import org.camunda.bpm.engine.variable.VariableMap;
 import org.camunda.bpm.engine.variable.Variables;
@@ -60,7 +61,6 @@ public class EvaluateDecisionService extends HttpServlet {
 			
 		    // prepare input data
 			VariableMap variables = Variables.createVariables();
-		    int inputCounter = 1;
 			for (SpinJsonNode inputNode : inputs) {
 				String varname = inputNode.prop("varname").stringValue();
 				if (inputNode.prop("type").stringValue().equals("string")) {
@@ -89,13 +89,10 @@ public class EvaluateDecisionService extends HttpServlet {
 				} else {
 					throw new Exception ("Data Type <i>" + inputNode.prop("type").stringValue() + "</i> is not yet supported in Simulation.");
 				}
-	
-				inputCounter++;
 			}
 		
 			  // create evaluation listner to record matched rules
 			  DishDecisionTableEvaluationListener evaluationListener = new DishDecisionTableEvaluationListener();
-	
 			  // get decision engine
 			  DmnEngineConfiguration engineConfiguration = DmnEngineConfiguration.createDefaultDmnEngineConfiguration();
 			  engineConfiguration.getCustomPostDecisionTableEvaluationListeners().add(evaluationListener);
@@ -113,17 +110,35 @@ public class EvaluateDecisionService extends HttpServlet {
 			  }
 			  // run decision table
 			  DmnDecisionResult result = dmnEngine.evaluateDecision(decision, variables);
-			  
+			  Iterator itr = result.iterator();
+	    		while(itr.hasNext()) {
+	    			SpinJsonNode vars = JSON("[]");
+	    			DmnDecisionResultEntries entry = (DmnDecisionResultEntries) itr.next();
+	    			Map<String,Object> e = entry.getEntryMap();
+	    			for (String key : e.keySet()) {
+	    				SpinJsonNode var = JSON("{}");
+	    				var.prop(key,e.get(key).toString());
+	    				vars.append(var);
+	    			}
+	    			rootNode.prop("tableResults",vars);
+	    		}
 			    List collectionList = new LinkedList();
 			    SpinJsonNode resultNode = JSON(result.collectEntries(decisionTable));
-			 	 
-	
+
 	  		List rulesList = new LinkedList();
 		      // print event
 	  		 List<DmnDecisionTableEvaluationEvent> evaluationEvents = evaluationListener.getLastEvents();
 		      System.out.println("The following Rules matched:");
 		      for (DmnDecisionTableEvaluationEvent evaluationEvent: evaluationEvents) {
 		      //System.out.println("The following Rules matched:");
+		    	  List<DmnEvaluatedInput> inputsDmn = evaluationEvent.getInputs();
+		    	  SpinJsonNode vars = JSON("[]");
+		    	  for (DmnEvaluatedInput input : inputsDmn) {
+		    		  SpinJsonNode var = JSON("{}");
+		    		  var.prop(input.getInputVariable(),input.getValue().getValue().toString());
+		    		  vars.append(var);
+		    	  }
+		    	  rootNode.prop("inputs",vars);
 		      for (DmnEvaluatedDecisionRule matchedRule : evaluationEvent.getMatchingRules()) {
 		    	  SpinJsonNode rulesNode = JSON("{}");
 		    	  rulesNode.prop("ruleId", matchedRule.getId());
@@ -135,6 +150,7 @@ public class EvaluateDecisionService extends HttpServlet {
 			    	outputList.add(outputProp);
 		        	//System.out.println("\t\t" + output);
 		        }
+		       
 		          rulesNode.prop("outputs", outputList);
 		        rulesList.add(rulesNode);
 		      
@@ -145,6 +161,8 @@ public class EvaluateDecisionService extends HttpServlet {
 		} catch (Exception e) {
 			rootNode.prop("error", e.getMessage());
 		}
+		
+		
 		
 		
 		resp.setHeader("Content-Type", "application/json;charset=UTF-8");
