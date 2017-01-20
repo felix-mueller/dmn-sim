@@ -135,7 +135,8 @@ public class EvaluateDecisionService extends HttpServlet {
 		    	  SpinJsonNode vars = JSON("[]");
 		    	  for (DmnEvaluatedInput input : inputsDmn) {
 		    		  SpinJsonNode var = JSON("{}");
-		    		  var.prop(input.getInputVariable(),input.getValue().getValue().toString());
+		    		  var.prop(input.getName(),input.getValue().getValue().toString());
+		    		  //var.prop(input.getInputVariable(),input.getValue().getValue().toString());
 		    		  vars.append(var);
 		    	  }
 		    	  rootNode.prop("inputs",vars);
