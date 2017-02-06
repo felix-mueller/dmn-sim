@@ -64,12 +64,10 @@
 	 <dependency>
 	    <groupId>org.camunda.spin</groupId>
 	    <artifactId>camunda-spin-core</artifactId>
-	    <scope>provided</scope>
 	  </dependency>
     <dependency>
       <groupId>org.camunda.spin</groupId>
       <artifactId>camunda-spin-dataformat-all</artifactId>
-      <scope>provided</scope>
     </dependency>
     
 
